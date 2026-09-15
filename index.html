@@ -5,7 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
     
-    <script src="https://google.com" async defer></script>
+    <!-- CSP Fix: Tells the browser it is safe to load Google's script libraries -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://google.com; frame-src https://google.com;">
+    
+    
+    <script src="https://google.com/gsi/client" async defer></script>
     
     <style>
         body {
@@ -29,17 +33,19 @@
         .button-wrapper {
             display: flex;
             justify-content: center;
+            min-height: 50px; /* Prevents layout shifting when button loads */
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- Heading that will dynamically change to the welcome message -->
+        <!-- Dynamic Heading -->
         <h1 id="heading">Sign in</h1>
         
         <!-- Google Sign-In Button Container -->
         <div class="button-wrapper" id="auth-button-container">
+            <!-- REPLACE THE CLIENT ID IN THE LINE BELOW -->
             <div id="g_id_onload"
                  data-client_id="88169519604-8l8enudk3ofqifabbmjug2cel8a11hg4.apps.googleusercontent.com"
                  data-context="signin"
@@ -60,7 +66,7 @@
     </div>
 
     <script>
-        // Helper function to decode the Google JWT token safely in the browser
+        // Decodes the Google JWT token in the client browser
         function parseJwt(token) {
             try {
                 const base64Url = token.split('.')[1];
@@ -71,28 +77,26 @@
 
                 return JSON.parse(jsonPayload);
             } catch (error) {
-                console.error("Failed to parse JWT token:", error);
+                console.error("JWT Parse Error:", error);
                 return null;
             }
         }
 
         // Triggers automatically when Google login succeeds
         function handleCredentialResponse(response) {
-            // Decode the response token to get user data
             const userProfile = parseJwt(response.credential);
             
             if (userProfile && userProfile.name) {
-                // Update the heading to show the user's name from their Google Account
+                // Change heading to display name
                 document.getElementById('heading').innerText = `Welcome ${userProfile.name}!`;
-                
-                // Hide the sign-in button completely
+                // Hide the sign-in button layout
                 document.getElementById('auth-button-container').style.display = 'none';
             }
 
-            // Replace this with your exact private portfolio URL
-            const portfolioUrl = "https://typebridge.42web.io";
+            // REPLACE WITH YOUR PORTFOLIO URL
+            const portfolioUrl = "https://typebridge.42web.io/";
             
-            // Wait 2 seconds (2000 milliseconds) so they see the welcome message, then redirect
+            // Redirect after 2 seconds
             setTimeout(() => {
                 window.location.href = portfolioUrl;
             }, 2000);
