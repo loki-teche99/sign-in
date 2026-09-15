@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In</title>
+    
+    <script src="https://google.com" async defer></script>
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #ffffff;
+        }
+        .container {
+            text-align: center;
+        }
+        h1 {
+            font-size: 32px;
+            color: #1f1f1f;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        .button-wrapper {
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Heading that will dynamically change to the welcome message -->
+        <h1 id="heading">Sign in</h1>
+        
+        <!-- Google Sign-In Button Container -->
+        <div class="button-wrapper" id="auth-button-container">
+            <div id="g_id_onload"
+                 data-client_id="YOUR_GOOGLE_CLIENT_://googleusercontent.com"
+                 data-context="signin"
+                 data-ux_mode="popup"
+                 data-callback="handleCredentialResponse"
+                 data-auto_prompt="false">
+            </div>
+
+            <div class="g_id_signin"
+                 data-type="standard"
+                 data-shape="pill"
+                 data-theme="outline"
+                 data-text="signin_with"
+                 data-size="large"
+                 data-logo_alignment="left">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to decode the Google JWT token safely in the browser
+        function parseJwt(token) {
+            try {
+                const base64Url = token.split('.')[1];
+                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+                const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+                }).join(''));
+
+                return JSON.parse(jsonPayload);
+            } catch (error) {
+                console.error("Failed to parse JWT token:", error);
+                return null;
+            }
+        }
+
+        // Triggers automatically when Google login succeeds
+        function handleCredentialResponse(response) {
+            // Decode the response token to get user data
+            const userProfile = parseJwt(response.credential);
+            
+            if (userProfile && userProfile.name) {
+                // Update the heading to show the user's name from their Google Account
+                document.getElementById('heading').innerText = `Welcome ${userProfile.name}!`;
+                
+                // Hide the sign-in button completely
+                document.getElementById('auth-button-container').style.display = 'none';
+            }
+
+            // Replace this with your exact private portfolio URL
+            const portfolioUrl = "https://your-private-portfolio.com";
+            
+            // Wait 2 seconds (2000 milliseconds) so they see the welcome message, then redirect
+            setTimeout(() => {
+                window.location.href = portfolioUrl;
+            }, 2000);
+        }
+    </script>
+
+</body>
+</html>
