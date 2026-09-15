@@ -1,7 +1,230 @@
-<script
-  src="https://accounts.google.com/gsi/client"
-  async
-  defer
-  onload="console.log('GOOGLE SDK LOADED')"
-  onerror="console.log('GOOGLE SDK FAILED')">
-</script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Sign In</title>
+
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f5f7fb;
+      color: #202124;
+    }
+
+    .container {
+      width: min(92%, 420px);
+      padding: 40px 28px;
+      text-align: center;
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    }
+
+    h1 {
+      margin: 0 0 28px;
+      font-size: 30px;
+      line-height: 1.2;
+      font-weight: 600;
+    }
+
+    #google-button {
+      display: flex;
+      justify-content: center;
+      min-height: 44px;
+    }
+
+    #error-message {
+      margin-top: 15px;
+      color: #d93025;
+      font-size: 14px;
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="container">
+
+    <h1 id="title">Sign in</h1>
+
+    <div id="google-button"></div>
+
+    <div id="error-message"></div>
+
+  </main>
+
+  <script>
+    const CLIENT_ID =
+      "88169519604-8l8enudk3ofqifabbmjug2cel8a11hg4.apps.googleusercontent.com";
+
+    const PORTFOLIO_URL =
+      "https://typebridge.42web.io";
+
+
+    function showError(message) {
+      console.error(message);
+
+      const errorElement =
+        document.getElementById("error-message");
+
+      errorElement.textContent = message;
+      errorElement.style.display = "block";
+    }
+
+
+    function handleCredentialResponse(response) {
+      try {
+
+        if (!response || !response.credential) {
+          throw new Error("Google credential was not received.");
+        }
+
+        const tokenParts =
+          response.credential.split(".");
+
+        if (tokenParts.length !== 3) {
+          throw new Error("Invalid Google JWT.");
+        }
+
+        let encodedPayload =
+          tokenParts[1];
+
+        encodedPayload =
+          encodedPayload
+            .replace(/-/g, "+")
+            .replace(/_/g, "/");
+
+        while (encodedPayload.length % 4 !== 0) {
+          encodedPayload += "=";
+        }
+
+        /*
+         * Decode the Google JWT payload
+         * using native browser window.atob().
+         */
+        const decodedPayload =
+          window.atob(encodedPayload);
+
+        const userData =
+          JSON.parse(decodedPayload);
+
+        const userName =
+          userData.name || "User";
+
+
+        /*
+         * Change title.
+         */
+        document.getElementById("title").textContent =
+          `Welcome ${userName}!`;
+
+
+        /*
+         * Hide Google Sign-In button.
+         */
+        document.getElementById("google-button").style.display =
+          "none";
+
+        document.getElementById("error-message").style.display =
+          "none";
+
+
+        /*
+         * Wait exactly 2 seconds,
+         * then redirect to portfolio.
+         */
+        setTimeout(function () {
+          window.location.href = PORTFOLIO_URL;
+        }, 2000);
+
+      } catch (error) {
+
+        console.error(
+          "Google Sign-In error:",
+          error
+        );
+
+        showError(
+          "Google Sign-In failed. Please try again."
+        );
+      }
+    }
+
+
+    function initializeGoogleSignIn() {
+
+      if (
+        !window.google ||
+        !window.google.accounts ||
+        !window.google.accounts.id
+      ) {
+        showError(
+          "Google Sign-In SDK did not load."
+        );
+        return;
+      }
+
+
+      google.accounts.id.initialize({
+        client_id: CLIENT_ID,
+        callback: handleCredentialResponse
+      });
+
+
+      google.accounts.id.renderButton(
+        document.getElementById("google-button"),
+        {
+          type: "standard",
+          theme: "outline",
+          size: "large",
+          text: "signin_with",
+          shape: "pill",
+          logo_alignment: "left",
+          width: 300
+        }
+      );
+
+      console.log(
+        "Google Sign-In button rendered successfully."
+      );
+    }
+
+
+    /*
+     * Because the script uses async + defer,
+     * wait until Google GIS becomes available.
+     */
+    function waitForGoogleSDK() {
+
+      if (
+        window.google &&
+        window.google.accounts &&
+        window.google.accounts.id
+      ) {
+        initializeGoogleSignIn();
+      } else {
+        setTimeout(waitForGoogleSDK, 100);
+      }
+    }
+
+
+    waitForGoogleSDK();
+  </script>
+
+</body>
+</html>
