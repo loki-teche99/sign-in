@@ -5,11 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In</title>
     
-    <!-- CSP Fix: Tells the browser it is safe to load Google's script libraries -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' https://google.com; frame-src https://google.com;">
     
-    
-    <script src="https://google.com/gsi/client" async defer></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <style>
         body {
@@ -33,7 +30,8 @@
         .button-wrapper {
             display: flex;
             justify-content: center;
-            min-height: 50px; /* Prevents layout shifting when button loads */
+            min-height: 50px;
+            min-width: 200px;
         }
     </style>
 </head>
@@ -45,7 +43,7 @@
         
         <!-- Google Sign-In Button Container -->
         <div class="button-wrapper" id="auth-button-container">
-            <!-- REPLACE THE CLIENT ID IN THE LINE BELOW -->
+            <!-- ⚠️ REPLACE THE CLIENT ID VALUE BELOW -->
             <div id="g_id_onload"
                  data-client_id="88169519604-8l8enudk3ofqifabbmjug2cel8a11hg4.apps.googleusercontent.com"
                  data-context="signin"
@@ -66,10 +64,10 @@
     </div>
 
     <script>
-        // Decodes the Google JWT token in the client browser
+        // Decodes the Google JWT token safely in the browser without crashing
         function parseJwt(token) {
             try {
-                const base64Url = token.split('.')[1];
+                const base64Url = token.split('.')[1]; // Target the token payload structure directly
                 const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
                 const jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
                     return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
@@ -93,8 +91,8 @@
                 document.getElementById('auth-button-container').style.display = 'none';
             }
 
-            // REPLACE WITH YOUR PORTFOLIO URL
-            const portfolioUrl = "https://typebridge.42web.io/";
+            // ⚠️ REPLACE WITH YOUR EXACT PORTFOLIO URL
+            const portfolioUrl = "https://typebridge.42web.io";
             
             // Redirect after 2 seconds
             setTimeout(() => {
